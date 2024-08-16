@@ -1,0 +1,132 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id       String @id @default(uuid())
+  name     String
+  email    String @unique
+  password String
+
+  orders Order[]
+
+  @@map("users")
+}
+
+model Order {
+  id            String   @id @default(uuid())
+  customerId    String   @map("customer_id")
+  state         String
+  city          String
+  streetAddress String   @map("street_address")
+  number        String
+  codePostal    Int      @map("code_postal")
+  complement    String
+  totalInCents  Int      @map("total_in_cents")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  customer User         @relation(fields: [customerId], references: [id])
+  items    OrderItems[]
+
+  @@map("orders")
+}
+
+model OrderItems {
+  id               String @id @default(uuid())
+  productId        String @map("product_id")
+  productVariantId String @map("product_variant_id")
+  orderId          String @map("order_id")
+  quantity         Int
+  subTotalInCents  Int    @map("sub_total_in_cents")
+
+  product         Product        @relation(fields: [productId], references: [id])
+  order           Order          @relation(fields: [orderId], references: [id])
+  product_variant ProductVariant @relation(fields: [productVariantId], references: [id])
+
+  @@map("orders_items")
+}
+
+model Product {
+  id          String @id @default(uuid())
+  name        String
+  slug        String @unique
+  description String
+
+  categoryId   String
+  discount     Int?
+  priceInCents Int      @map("price_in_cents")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  orderItems OrderItems[]
+  colors     ProductColor[]
+  sizes      ProductSize[]
+  variants   ProductVariant[]
+
+  images   Attachment[]
+  category ProductCategory? @relation(fields: [categoryId], references: [id])
+
+  @@map("products")
+}
+
+model ProductCategory {
+  id   String @id @default(uuid())
+  name String
+
+  products Product[]
+}
+
+model Attachment {
+  id        String  @id @default(uuid())
+  title     String
+  url       String
+  productId String  @map("product_id")
+  product   Product @relation(fields: [productId], references: [id])
+
+  @@map("attachments")
+}
+
+model ProductColor {
+  id        String  @id @default(uuid())
+  productId String? @map("product_id")
+  name      String
+  color     String
+
+  product  Product?         @relation(fields: [productId], references: [id])
+  variants ProductVariant[]
+
+  @@map("product_colors")
+}
+
+model ProductSize {
+  id        String  @id @default(uuid())
+  productId String? @map("product_id")
+  name      String
+  size      String
+
+  product  Product?         @relation(fields: [productId], references: [id])
+  variants ProductVariant[]
+
+  @@map("product_sizes")
+}
+
+model ProductVariant {
+  id        String @id @default(uuid())
+  productId String @map("product_id")
+  sizeId    String @map("size_id")
+  colorId   String @map("color_id")
+  sku       String @unique
+  quantity  Int
+
+  product    Product      @relation(fields: [productId], references: [id])
+  size       ProductSize  @relation(fields: [sizeId], references: [id])
+  color      ProductColor @relation(fields: [colorId], references: [id])
+  OrderItems OrderItems[]
+
+  @@unique([productId, colorId, sizeId])
+  @@map("product_variants")
+}
