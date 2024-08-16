@@ -24,6 +24,7 @@ export class FetchProductBySlug {
         slug,
       },
       include: {
+        tags: { select: { name: true } },
         category: true,
         colors: true,
         images: true,
@@ -35,16 +36,21 @@ export class FetchProductBySlug {
     if (!product) {
       throw new NotFoundException('Product Not found')
     }
-    const { colors, sizes, variants } = product
+    const { colors, sizes, variants, tags } = product
+    const tagsArray = tags.map((tag) => tag.name)
     const priceInCents = product.discount
       ? calculatePriceWithDiscount(product.priceInCents, product.discount)
       : product.priceInCents
-    const oldPriceInCents = product.discount ? product.priceInCents : null
+    const oldPriceInCents = product.discount
+      ? product.priceInCents.toFixed(2)
+      : null
 
     const productFormated = {
       ...product,
+      discountPerCent: product.discount,
+      tags: tagsArray,
       isNew: isNew(product.createdAt, 3),
-      priceInCents,
+      priceInCents: priceInCents.toFixed(2),
       oldPriceInCents,
       colors,
       sizes,

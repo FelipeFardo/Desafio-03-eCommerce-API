@@ -47,9 +47,14 @@ export class FetchProducts {
         image: images[0],
         isNew: isNew(product.createdAt, 3),
         priceInCents: product.discount
-          ? calculatePriceWithDiscount(product.priceInCents, product.discount)
-          : product.priceInCents,
-        oldPriceInCents: product.discount ? product.priceInCents : null,
+          ? calculatePriceWithDiscount(
+              product.priceInCents,
+              product.discount,
+            ).toFixed(2)
+          : product.priceInCents.toFixed(2),
+        oldPriceInCents: product.discount
+          ? product.priceInCents.toFixed(2)
+          : null,
       }
     })
 

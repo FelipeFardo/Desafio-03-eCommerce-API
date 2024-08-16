@@ -44,9 +44,9 @@ model OrderItems {
   quantity         Int
   subTotalInCents  Int    @map("sub_total_in_cents")
 
-  product         Product        @relation(fields: [productId], references: [id])
-  order           Order          @relation(fields: [orderId], references: [id])
-  product_variant ProductVariant @relation(fields: [productVariantId], references: [id])
+  product        Product        @relation(fields: [productId], references: [id])
+  order          Order          @relation(fields: [orderId], references: [id])
+  productVariant ProductVariant @relation(fields: [productVariantId], references: [id])
 
   @@map("orders_items")
 }
@@ -69,6 +69,7 @@ model Product {
 
   images   Attachment[]
   category ProductCategory? @relation(fields: [categoryId], references: [id])
+  tags     ProductTags[]
 
   @@map("products")
 }
@@ -78,6 +79,8 @@ model ProductCategory {
   name String
 
   products Product[]
+
+  @@map("product_categorys")
 }
 
 model Attachment {
@@ -125,8 +128,17 @@ model ProductVariant {
   product    Product      @relation(fields: [productId], references: [id])
   size       ProductSize  @relation(fields: [sizeId], references: [id])
   color      ProductColor @relation(fields: [colorId], references: [id])
-  OrderItems OrderItems[]
+  orderItems OrderItems[]
 
   @@unique([productId, colorId, sizeId])
   @@map("product_variants")
+}
+
+model ProductTags {
+  id        String  @id @default(uuid())
+  name      String
+  productId String  @map("product_id")
+  product   Product @relation(fields: [productId], references: [id])
+
+  @@map("product_tags")
 }

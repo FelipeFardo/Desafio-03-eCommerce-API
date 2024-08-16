@@ -4,6 +4,7 @@ import { createSlug } from '@/http/utls/creat-slug'
 const prisma = new PrismaClient()
 
 async function seed() {
+  await prisma.productTags.deleteMany()
   await prisma.order.deleteMany()
   await prisma.user.deleteMany()
   await prisma.orderItems.deleteMany()
@@ -28,6 +29,59 @@ async function seed() {
     'Sports Gear',
   ]
 
+  const productTags = [
+    'Eletrônicos',
+    'Celulares',
+    'Acessórios',
+    'Smartphones',
+    'Tecnologia',
+    'Ofertas',
+    'Promoção',
+    'Novidades',
+    'Gadgets',
+    'Inovação',
+    'Computadores',
+    'Notebooks',
+    'Tablets',
+    'Consoles',
+    'Videogames',
+    'Câmeras',
+    'Fotografia',
+    'Som',
+    'Áudio',
+    'Fones de Ouvido',
+    'Televisores',
+    'Smart TVs',
+    'Wearables',
+    'Relógios Inteligentes',
+    'Casa Inteligente',
+    'Automação',
+    'Iluminação',
+    'Segurança',
+    'Periféricos',
+    'Teclados',
+    'Mouses',
+    'Armazenamento',
+    'SSD',
+    'HDD',
+    'Memória',
+    'Processadores',
+    'Placas de Vídeo',
+    'Monitores',
+    'Impressoras',
+    'Scanners',
+    'Networking',
+    'Roteadores',
+    'Modems',
+    'Cabo HDMI',
+    'Power Bank',
+    'Carregadores',
+    'Caixas de Som',
+    'Suportes',
+    'Adaptadores',
+    'Case de Proteção',
+  ]
+
   const createdCategories = await Promise.all(
     productsCategorys.map(async (name) => {
       return prisma.productCategory.create({
@@ -38,12 +92,22 @@ async function seed() {
   )
 
   for (let i = 1; i <= 50; i++) {
+    const isDiscount = Math.random() > 0.8
     const categoryRandom = numberRandom(10)
     const sku = 'SS' + i.toString().padStart(3, '0')
+
+    const currentDate = new Date()
+    const randomDays = Math.floor(Math.random() * 7)
+
+    const randomDate = new Date()
+    randomDate.setDate(currentDate.getDate() - randomDays)
+
     const product = await prisma.product.create({
       data: {
         categoryId: createdCategories[categoryRandom].id,
-        description: faker.lorem.words({ min: 1, max: 3 }),
+        discount: isDiscount ? Math.floor(Math.random() * 40) + 1 : null,
+        createdAt: randomDate,
+        description: faker.lorem.paragraph(),
         name: faker.commerce.product(),
         priceInCents: Number(faker.commerce.price({ min: 100, max: 1000 })),
         slug: createSlug(faker.commerce.productName() + i),
@@ -70,6 +134,27 @@ async function seed() {
           },
         },
       },
+    })
+
+    await prisma.productTags.createMany({
+      data: [
+        {
+          productId: product.id,
+          name: productTags[Math.floor(Math.random() * productTags.length)],
+        },
+        {
+          productId: product.id,
+          name: productTags[Math.floor(Math.random() * productTags.length)],
+        },
+        {
+          productId: product.id,
+          name: productTags[Math.floor(Math.random() * productTags.length)],
+        },
+        {
+          productId: product.id,
+          name: productTags[Math.floor(Math.random() * productTags.length)],
+        },
+      ],
     })
 
     const colors = ['#FF0000', '#0000FF', '#000000', '#FFFFFF']
