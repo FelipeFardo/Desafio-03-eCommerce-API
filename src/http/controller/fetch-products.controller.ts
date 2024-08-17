@@ -25,7 +25,9 @@ export class FetchProducts {
   @HttpCode(200)
   @UsePipes(new ZodValidationPipe(queryFetchProductsSchema))
   async handle(@Query() query: QueryFetchProductsSchema) {
-    const { pageIndex, perPage } = query
+    const { pageIndex, perPage, categories: categoriesQuery, shortBy } = query
+
+    const categories = categoriesQuery ? categoriesQuery.split(',') : []
 
     const totalCount = await this.prisma.product.count()
 
@@ -38,10 +40,21 @@ export class FetchProducts {
           take: 1,
         },
       },
+      ...(shortBy ? { orderBy: { priceInCents: shortBy } } : {}),
+      ...(categories.length > 0
+        ? {
+            where: {
+              category: {
+                name: { in: categories },
+              },
+            },
+          }
+        : {}),
     })
 
     const productsFormated = products.map((product) => {
       const { images, ...rest } = product
+
       return {
         ...rest,
         image: images[0],
@@ -63,6 +76,8 @@ export class FetchProducts {
       meta: {
         pageIndex,
         perPage,
+        categories,
+        shortBy: shortBy || null,
         totalCount,
       },
     }
