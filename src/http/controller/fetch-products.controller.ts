@@ -36,11 +36,15 @@ export class FetchProducts {
     const categories = categoriesQuery ? categoriesQuery.split(',') : []
 
     const totalCount = await this.prisma.product.count({
-      where: {
-        category: {
-          slug: { in: categories },
-        },
-      },
+      ...(categories.length > 0
+        ? {
+            where: {
+              category: {
+                slug: { in: categories },
+              },
+            },
+          }
+        : {}),
     })
 
     const products = await this.prisma.product.findMany({
