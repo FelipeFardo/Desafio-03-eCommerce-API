@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common'
 import { PassportModule } from '@nestjs/passport'
 import { JwtModule } from '@nestjs/jwt'
-import { JwtStrategy } from '../cryptography/jwt.strategy'
+import { JwtStrategy } from '../auth/jwt.strategy'
 import { APP_GUARD } from '@nestjs/core'
 import { JwtAuthGuard } from './jwt-auth.guard'
 import { EnvService } from '../env/env.service'

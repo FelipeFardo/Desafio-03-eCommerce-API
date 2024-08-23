@@ -5,7 +5,9 @@ import { CreateAccountController } from './controller/create-account.controller'
 import { AuthenticateController } from './controller/authenticate-user.controller'
 import { FetchProducts } from './controller/fetch-products.controller'
 import { FetchProductBySlug } from './controller/fetch-product-by-slug.controller'
-import { FetchCategories } from './controller/fetch-categories..controller'
+import { FetchCategories } from './controller/fetch-categories.controller'
+import { FetchProfile } from './controller/fetch-profile.controller'
+import { CalculateSummaryController } from './controller/calculate-summary.controller'
 
 @Module({
   imports: [PrismaModule, CryptographyModule],
@@ -15,6 +17,8 @@ import { FetchCategories } from './controller/fetch-categories..controller'
     FetchProducts,
     FetchProductBySlug,
     FetchCategories,
+    FetchProfile,
+    CalculateSummaryController,
   ],
   providers: [
     CreateAccountController,
@@ -22,6 +26,8 @@ import { FetchCategories } from './controller/fetch-categories..controller'
     FetchProducts,
     FetchProductBySlug,
     FetchCategories,
+    FetchProfile,
+    CalculateSummaryController,
   ],
 })
 export class HttpModule {}

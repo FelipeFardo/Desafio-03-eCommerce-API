@@ -4,14 +4,20 @@ import { z } from 'zod'
 import { ZodValidationPipe } from '@/http/pipes/zod-validation-pipe'
 import { Public } from '@/auth/public'
 import { PrismaService } from '@/database/prisma.service'
-import { calculatePriceWithDiscount } from '../utls/calculate-price-with-discount'
-import { isNew } from '../utls/is-new'
+import { calculatePriceWithDiscount } from '../utils/calculate-price-with-discount'
+import { isNew } from '../utils/is-new'
 
 const queryFetchProductsSchema = z.object({
   pageIndex: z.coerce.number().default(1),
   perPage: z.coerce.number().default(16),
-  shortBy: z.enum(['asc', 'desc']).optional(),
-  categories: z.string().optional(),
+  shortBy: z
+    .enum(['asc', 'desc', 'default'])
+    .optional()
+    .optional()
+    .transform((value) => {
+      return value === 'default' ? null : value
+    }),
+  categories: z.string().optional().nullable(),
 })
 
 type QueryFetchProductsSchema = z.infer<typeof queryFetchProductsSchema>
@@ -45,7 +51,7 @@ export class FetchProducts {
         ? {
             where: {
               category: {
-                name: { in: categories },
+                slug: { in: categories },
               },
             },
           }

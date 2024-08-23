@@ -4,7 +4,7 @@ import { z } from 'zod'
 import { ZodValidationPipe } from '@/http/pipes/zod-validation-pipe'
 import { PrismaService } from '@/database/prisma.service'
 import { CurrentUser } from '@/auth/current-user-decorator'
-import type { UserPayload } from '@/cryptography/jwt.strategy'
+import type { UserPayload } from '@/auth/jwt.strategy'
 
 const createOrderBodySchema = z.object({
   state: z.string(),

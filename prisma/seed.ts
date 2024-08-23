@@ -1,6 +1,8 @@
 import { PrismaClient } from '@prisma/client'
 import { faker } from '@faker-js/faker'
-import { createSlug } from '@/http/utls/creat-slug'
+import { createSlug } from '@/http/utils/creat-slug'
+import { hash } from 'bcryptjs'
+
 const prisma = new PrismaClient()
 
 async function seed() {
@@ -15,6 +17,14 @@ async function seed() {
   await prisma.attachment.deleteMany()
   await prisma.product.deleteMany()
   await prisma.productCategory.deleteMany()
+
+  await prisma.user.create({
+    data: {
+      email: 'john@acme.com',
+      name: 'John Doe',
+      password: await hash('123456', 8),
+    },
+  })
 
   const productsCategorys = [
     'Electronics',
@@ -85,11 +95,18 @@ async function seed() {
   const createdCategories = await Promise.all(
     productsCategorys.map(async (name) => {
       return prisma.productCategory.create({
-        data: { name },
+        data: { name, slug: createSlug(name) },
         select: { id: true },
       })
     }),
   )
+
+  const images = [
+    'https://pub-9448e6c9570e405b8072625bd2387965.r2.dev/product_01.png',
+    'https://pub-9448e6c9570e405b8072625bd2387965.r2.dev/product_02.png',
+    'https://pub-9448e6c9570e405b8072625bd2387965.r2.dev/product_03.png',
+    'https://pub-9448e6c9570e405b8072625bd2387965.r2.dev/product_04.png',
+  ]
 
   for (let i = 1; i <= 50; i++) {
     const isDiscount = Math.random() > 0.8
@@ -102,12 +119,13 @@ async function seed() {
     const randomDate = new Date()
     randomDate.setDate(currentDate.getDate() - randomDays)
 
+    const shuffledImages = shuffleArray(images)
     const product = await prisma.product.create({
       data: {
         categoryId: createdCategories[categoryRandom].id,
         discount: isDiscount ? Math.floor(Math.random() * 40) + 1 : null,
         createdAt: randomDate,
-        description: faker.lorem.paragraph(),
+        description: faker.lorem.words({ min: 3, max: 6 }),
         name: faker.commerce.product(),
         priceInCents: Number(faker.commerce.price({ min: 100, max: 1000 })),
         slug: createSlug(faker.commerce.productName() + i),
@@ -116,19 +134,19 @@ async function seed() {
             data: [
               {
                 title: 'imaga-product' + i,
-                url: 'https://pub-9448e6c9570e405b8072625bd2387965.r2.dev/product_01.png',
+                url: shuffledImages[0],
               },
               {
                 title: 'imaga-product' + i + 1,
-                url: 'https://pub-9448e6c9570e405b8072625bd2387965.r2.dev/product_02.png',
+                url: shuffledImages[1],
               },
               {
                 title: 'imaga-product' + i + 2,
-                url: 'https://pub-9448e6c9570e405b8072625bd2387965.r2.dev/product_03.png',
+                url: shuffledImages[2],
               },
               {
                 title: 'imaga-product' + i + 3,
-                url: 'https://pub-9448e6c9570e405b8072625bd2387965.r2.dev/product_04.png',
+                url: shuffledImages[3],
               },
             ],
           },
@@ -168,7 +186,10 @@ async function seed() {
         productId: product.id,
       },
     })
-    const color2Random = numberRandom(4)
+    let color2Random: number
+    do {
+      color2Random = Math.floor(Math.random() * 4)
+    } while (color1Random === color2Random)
 
     const color2 = await prisma.productColor.create({
       data: {
@@ -189,7 +210,11 @@ async function seed() {
       },
     })
 
-    const size2Random = numberRandom(3)
+    let size2Random: number
+    do {
+      size2Random = Math.floor(Math.random() * 3)
+    } while (size2Random === size1Random)
+
     const size2 = await prisma.productSize.create({
       data: {
         size: sizes[size2Random],
@@ -235,6 +260,15 @@ async function seed() {
 
 function numberRandom(number: number) {
   return Math.floor(Math.random() * number)
+}
+
+function shuffleArray(array: string[]) {
+  const newArray = array.slice()
+  for (let i = newArray.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[newArray[i], newArray[j]] = [newArray[j], newArray[i]]
+  }
+  return newArray
 }
 
 seed().then(() => {

@@ -75,9 +75,9 @@ model Product {
 }
 
 model ProductCategory {
-  id   String @id @default(uuid())
-  name String @unique
-
+  id       String    @id @default(uuid())
+  name     String
+  slug     String    @unique
   products Product[]
 
   @@map("product_categorys")

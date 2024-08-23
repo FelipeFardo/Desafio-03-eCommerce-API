@@ -8,8 +8,8 @@ import {
 
 import { Public } from '@/auth/public'
 import { PrismaService } from '@/database/prisma.service'
-import { isNew } from '../utls/is-new'
-import { calculatePriceWithDiscount } from '../utls/calculate-price-with-discount'
+import { isNew } from '../utils/is-new'
+import { calculatePriceWithDiscount } from '../utils/calculate-price-with-discount'
 
 @Controller('/products/:slug')
 @Public()

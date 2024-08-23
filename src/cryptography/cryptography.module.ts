@@ -5,7 +5,7 @@ import { HashComparer } from './hash-compare'
 import { HashGenerator } from './hash-generator'
 
 import { BcryptHasher } from './bcrypt-hasher'
-import { JwtEncrypter } from '../auth/jwt-encrypter'
+import { JwtEncrypter } from './jwt-encrypter'
 
 @Module({
   providers: [
