@@ -8,6 +8,7 @@ import { FetchProductBySlug } from './controller/fetch-product-by-slug.controlle
 import { FetchCategories } from './controller/fetch-categories.controller'
 import { FetchProfile } from './controller/fetch-profile.controller'
 import { CalculateSummaryController } from './controller/calculate-summary.controller'
+import { FinishSaleController } from './controller/finish-sale.controller'
 
 @Module({
   imports: [PrismaModule, CryptographyModule],
@@ -19,6 +20,7 @@ import { CalculateSummaryController } from './controller/calculate-summary.contr
     FetchCategories,
     FetchProfile,
     CalculateSummaryController,
+    FinishSaleController,
   ],
   providers: [
     CreateAccountController,
@@ -28,6 +30,7 @@ import { CalculateSummaryController } from './controller/calculate-summary.contr
     FetchCategories,
     FetchProfile,
     CalculateSummaryController,
+    FinishSaleController,
   ],
 })
 export class HttpModule {}

@@ -108,7 +108,7 @@ async function seed() {
     'https://pub-9448e6c9570e405b8072625bd2387965.r2.dev/product_04.png',
   ]
 
-  for (let i = 1; i <= 50; i++) {
+  for (let i = 1; i <= 100; i++) {
     const isDiscount = Math.random() > 0.8
     const categoryRandom = numberRandom(10)
     const sku = 'SS' + i.toString().padStart(3, '0')

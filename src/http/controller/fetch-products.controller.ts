@@ -93,7 +93,7 @@ export class FetchProducts {
         pageIndex,
         perPage,
         categories,
-        shortBy: shortBy || null,
+        shortBy: shortBy || 'default',
         totalCount,
       },
     }

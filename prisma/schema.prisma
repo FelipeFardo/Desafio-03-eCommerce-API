@@ -19,16 +19,22 @@ model User {
 }
 
 model Order {
-  id            String   @id @default(uuid())
-  customerId    String   @map("customer_id")
-  state         String
-  city          String
-  streetAddress String   @map("street_address")
-  number        String
-  codePostal    Int      @map("code_postal")
-  complement    String
-  totalInCents  Int      @map("total_in_cents")
-  createdAt     DateTime @default(now()) @map("created_at")
+  id             String   @id @default(uuid())
+  customerId     String   @map("customer_id")
+  firstName      String   @map("first_name")
+  lastName       String   @map("last_name")
+  companyName    String?  @map("company_name")
+  zipCode        String   @map("zip_code")
+  country        String
+  streetAddress  String   @map("street_address")
+  city           String
+  province       String
+  email          String
+  additionalInfo String?  @map("addiotional_info")
+  addOnAddress   String   @map("add_on_address")
+  paymentMethod  String   @map("payment_method")
+  totalInCents   Int      @map("total_in_cents")
+  createdAt      DateTime @default(now()) @map("created_at")
 
   customer User         @relation(fields: [customerId], references: [id])
   items    OrderItems[]
