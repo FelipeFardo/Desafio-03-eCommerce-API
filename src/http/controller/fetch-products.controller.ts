@@ -13,11 +13,20 @@ const queryFetchProductsSchema = z.object({
   shortBy: z
     .enum(['asc', 'desc', 'default'])
     .optional()
-    .optional()
+    .nullable()
     .transform((value) => {
       return value === 'default' ? null : value
     }),
-  categories: z.string().optional().nullable(),
+  categories: z
+    .string()
+    .optional()
+    .nullable()
+    .transform((value) => {
+      if (value && value.length > 0) {
+        return value.split(',')
+      }
+      return []
+    }),
 })
 
 type QueryFetchProductsSchema = z.infer<typeof queryFetchProductsSchema>
@@ -31,9 +40,7 @@ export class FetchProducts {
   @HttpCode(200)
   @UsePipes(new ZodValidationPipe(queryFetchProductsSchema))
   async handle(@Query() query: QueryFetchProductsSchema) {
-    const { pageIndex, perPage, categories: categoriesQuery, shortBy } = query
-
-    const categories = categoriesQuery ? categoriesQuery.split(',') : []
+    const { pageIndex, perPage, categories, shortBy } = query
 
     const totalCount = await this.prisma.product.count({
       ...(categories.length > 0

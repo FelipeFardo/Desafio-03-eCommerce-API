@@ -4,7 +4,6 @@ import {
   Controller,
   HttpCode,
   Post,
-  UsePipes,
 } from '@nestjs/common'
 
 import { z } from 'zod'
@@ -20,8 +19,8 @@ const paymentMethods = [
 ] as const
 
 const finishSaleBodySchema = z.object({
-  firstName: z.string().min(3, 'First name is required'),
-  lastName: z.string().min(3, 'Last name is required'),
+  firstName: z.string().min(3),
+  lastName: z.string().min(3),
   companyName: z.string().optional().nullable(),
   zipCode: z
     .string()
@@ -46,6 +45,8 @@ const finishSaleBodySchema = z.object({
   ),
 })
 
+const bodyValidationPipe = new ZodValidationPipe(finishSaleBodySchema)
+
 type FinishSaleBodySchema = z.infer<typeof finishSaleBodySchema>
 
 @Controller('/finish-sale')
@@ -54,9 +55,8 @@ export class FinishSaleController {
 
   @Post()
   @HttpCode(201)
-  @UsePipes(new ZodValidationPipe(finishSaleBodySchema))
   async handle(
-    @Body() body: FinishSaleBodySchema,
+    @Body(bodyValidationPipe) body: FinishSaleBodySchema,
     @CurrentUser() user: UserPayload,
   ) {
     const { sub: userId } = user
@@ -97,6 +97,7 @@ export class FinishSaleController {
             customerId: userId,
           },
         })
+
         orderIdResponse = order.id
         await Promise.all(
           items.map(async (item) => {
@@ -112,9 +113,10 @@ export class FinishSaleController {
                 },
               },
             })
-            if (productWithVariant.variants[0].quantity > item.quantity) {
+
+            if (item.quantity > productWithVariant.variants[0].quantity) {
               throw new Error(
-                `Please note that there has been a change in the quantity available for Product ${productWithVariant.slug} and SKU: ${productWithVariant.variants[0].sku}`,
+                `Please note that there has been a change in the quantity available for Product ${productWithVariant.slug} and SKU: ${productWithVariant.variants[0].sku}. The available quantity is ${productWithVariant.variants[0].quantity}`,
               )
             }
             const subTotal = item.quantity * productWithVariant.priceInCents
@@ -149,7 +151,7 @@ export class FinishSaleController {
       throw new ConflictException()
     }
     return {
-      orderIdResponse,
+      orderId: orderIdResponse,
     }
   }
 }

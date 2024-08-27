@@ -9,6 +9,7 @@ import { FetchCategories } from './controller/fetch-categories.controller'
 import { FetchProfile } from './controller/fetch-profile.controller'
 import { CalculateSummaryController } from './controller/calculate-summary.controller'
 import { FinishSaleController } from './controller/finish-sale.controller'
+import { FetchOrderById } from './controller/fetch-order-by-id.controller'
 
 @Module({
   imports: [PrismaModule, CryptographyModule],
@@ -21,6 +22,7 @@ import { FinishSaleController } from './controller/finish-sale.controller'
     FetchProfile,
     CalculateSummaryController,
     FinishSaleController,
+    FetchOrderById,
   ],
   providers: [
     CreateAccountController,
@@ -31,6 +33,7 @@ import { FinishSaleController } from './controller/finish-sale.controller'
     FetchProfile,
     CalculateSummaryController,
     FinishSaleController,
+    FetchOrderById,
   ],
 })
 export class HttpModule {}
