@@ -20,24 +20,24 @@ This project was developed with the following technologies:
 
 ### Install Dependencies
 ```sh
- - npm install
+npm install
 ```
 ### Configure Environment Variables
 .env.example
 
 ### Start Docker Container with PostgreSQL
 ```sh
- - docker compose up -d
+docker compose up -d
 ```
 
 ### Run Database Seed Command
 ```sh
- - npm run db:seed
+npm run db:seed
 ```
 
 ### Run the Project
 ```sh
- - npm run start:dev
+npm run start:dev
 ```
 
 ## 📝 License
