@@ -43,12 +43,13 @@ model Order {
 }
 
 model OrderItems {
-  id               String @id @default(uuid())
-  productId        String @map("product_id")
-  productVariantId String @map("product_variant_id")
-  orderId          String @map("order_id")
-  quantity         Int
-  subTotalInCents  Int    @map("sub_total_in_cents")
+  id                  String @id @default(uuid())
+  productId           String @map("product_id")
+  productVariantId    String @map("product_variant_id")
+  orderId             String @map("order_id")
+  quantity            Int
+  priceInCentsPerUnit Int    @map("price_in_cents_per_unit")
+  subTotalInCents     Int    @map("sub_total_in_cents")
 
   product        Product        @relation(fields: [productId], references: [id])
   order          Order          @relation(fields: [orderId], references: [id])
@@ -58,15 +59,12 @@ model OrderItems {
 }
 
 model Product {
-  id          String @id @default(uuid())
+  id          String   @id @default(uuid())
   name        String
-  slug        String @unique
+  slug        String   @unique
   description String
-
-  categoryId   String
-  discount     Int?
-  priceInCents Int      @map("price_in_cents")
-  createdAt    DateTime @default(now()) @map("created_at")
+  categoryId  String
+  createdAt   DateTime @default(now()) @map("created_at")
 
   orderItems OrderItems[]
   colors     ProductColor[]
@@ -124,12 +122,15 @@ model ProductSize {
 }
 
 model ProductVariant {
-  id        String @id @default(uuid())
-  productId String @map("product_id")
-  sizeId    String @map("size_id")
-  colorId   String @map("color_id")
-  sku       String @unique
-  quantity  Int
+  id           String   @id @default(uuid())
+  productId    String   @map("product_id")
+  sizeId       String   @map("size_id")
+  colorId      String   @map("color_id")
+  sku          String   @unique
+  quantity     Int
+  discount     Int?
+  priceInCents Int      @map("price_in_cents")
+  createdAt    DateTime @default(now()) @map("created_at")
 
   product    Product      @relation(fields: [productId], references: [id])
   size       ProductSize  @relation(fields: [sizeId], references: [id])

@@ -7,9 +7,9 @@ const prisma = new PrismaClient()
 
 async function seed() {
   await prisma.productTags.deleteMany()
+  await prisma.orderItems.deleteMany()
   await prisma.order.deleteMany()
   await prisma.user.deleteMany()
-  await prisma.orderItems.deleteMany()
   await prisma.order.deleteMany()
   await prisma.productVariant.deleteMany()
   await prisma.productColor.deleteMany()
@@ -109,25 +109,15 @@ async function seed() {
   ]
 
   for (let i = 1; i <= 100; i++) {
-    const isDiscount = Math.random() > 0.8
     const categoryRandom = numberRandom(10)
     const sku = 'SS' + i.toString().padStart(3, '0')
-
-    const currentDate = new Date()
-    const randomDays = Math.floor(Math.random() * 7)
-
-    const randomDate = new Date()
-    randomDate.setDate(currentDate.getDate() - randomDays)
 
     const shuffledImages = shuffleArray(images)
     const product = await prisma.product.create({
       data: {
         categoryId: createdCategories[categoryRandom].id,
-        discount: isDiscount ? Math.floor(Math.random() * 40) + 1 : null,
-        createdAt: randomDate,
         description: faker.lorem.words({ min: 3, max: 6 }),
         name: faker.commerce.product(),
-        priceInCents: Number(faker.commerce.price({ min: 100, max: 1000 })),
         slug: createSlug(faker.commerce.productName() + i),
         images: {
           createMany: {
@@ -227,35 +217,61 @@ async function seed() {
       data: [
         {
           quantity: faker.number.int({ min: 1, max: 10 }),
+          createdAt: randomCreateAt(7),
           colorId: color1.id,
           sku: sku + 1,
           sizeId: size1.id,
           productId: product.id,
+          discount: randomDiscout() ? Math.floor(Math.random() * 40) + 1 : null,
+          priceInCents: Number(faker.commerce.price({ min: 100, max: 1000 })),
         },
         {
           quantity: faker.number.int({ min: 1, max: 10 }),
+          createdAt: randomCreateAt(7),
           colorId: color1.id,
           sku: sku + 2,
           sizeId: size2.id,
           productId: product.id,
+          discount: randomDiscout() ? Math.floor(Math.random() * 40) + 1 : null,
+          priceInCents: Number(faker.commerce.price({ min: 100, max: 1000 })),
         },
         {
           quantity: faker.number.int({ min: 1, max: 10 }),
+          createdAt: randomCreateAt(7),
           colorId: color2.id,
           sku: sku + 3,
           sizeId: size1.id,
           productId: product.id,
+          discount: randomDiscout() ? Math.floor(Math.random() * 40) + 1 : null,
+          priceInCents: Number(faker.commerce.price({ min: 100, max: 1000 })),
         },
         {
           quantity: faker.number.int({ min: 1, max: 10 }),
+          createdAt: randomCreateAt(7),
           colorId: color2.id,
           sku: sku + 4,
           sizeId: size2.id,
           productId: product.id,
+          discount: randomDiscout() ? Math.floor(Math.random() * 40) + 1 : null,
+          priceInCents: Number(faker.commerce.price({ min: 100, max: 1000 })),
         },
       ],
     })
   }
+}
+
+function randomDiscout() {
+  const isDiscount = Math.random() > 0.8
+  return isDiscount
+}
+
+function randomCreateAt(daysBeforeTheCurrentDate: number) {
+  const currentDate = new Date()
+  const randomDays = Math.floor(Math.random() * daysBeforeTheCurrentDate)
+
+  const randomDate = new Date()
+  randomDate.setDate(currentDate.getDate() - randomDays)
+  return randomDate
 }
 
 function numberRandom(number: number) {

@@ -4,6 +4,7 @@ import { z } from 'zod'
 import { ZodValidationPipe } from '@/http/pipes/zod-validation-pipe'
 import { Public } from '@/auth/public'
 import { PrismaService } from '@/database/prisma.service'
+import { calculatePriceWithDiscount } from '../utils/calculate-price-with-discount'
 
 const CalculateSummaryBodySchema = z.object({
   items: z.array(
@@ -37,15 +38,14 @@ export class CalculateSummaryController {
             size: true,
             product: {
               include: {
-                images: true,
+                images: {
+                  take: 1,
+                },
               },
             },
           },
           where: {
             sku: item.sku,
-            product: {
-              slug: item.productSlug,
-            },
           },
         })
 
@@ -62,24 +62,24 @@ export class CalculateSummaryController {
             `Please note that there has been a change in the quantity available for Product ${item.productSlug} and SKU: ${item.sku}`,
           )
         }
+
         const quantity = Math.min(item.quantity, quantityAvailable)
 
-        let oldPrice: number | null = null
-        if (variant.product.discount > 0) {
-          oldPrice = variant.product.priceInCents
-          variant.product.priceInCents =
-            variant.product.priceInCents -
-            (variant.product.priceInCents * variant.product.discount) / 100
-        }
+        variant.priceInCents = calculatePriceWithDiscount(
+          variant.priceInCents,
+          variant.discount,
+        )
 
-        const subTotal = quantity * variant.product.priceInCents
+        const subTotal = quantity * variant.priceInCents
 
-        const { product } = variant
+        const {
+          product: { images, ...productRest },
+        } = variant
         return {
           quantityAvailable,
           product: {
-            ...product,
-            oldPrice,
+            image: images[0],
+            ...productRest,
           },
           variant,
           quantity,

@@ -37,24 +37,26 @@ export class FetchProductBySlug {
       throw new NotFoundException('Product Not found')
     }
     const { colors, sizes, variants, tags } = product
+
     const tagsArray = tags.map((tag) => tag.name)
-    const priceInCents = product.discount
-      ? calculatePriceWithDiscount(product.priceInCents, product.discount)
-      : product.priceInCents
-    const oldPriceInCents = product.discount
-      ? product.priceInCents.toFixed(2)
-      : null
+
+    const variantsFormat = variants.map((variant) => {
+      const { priceInCents, discount, createdAt, ...rest } = variant
+      return {
+        discount,
+        oldPriceInCents: discount ? priceInCents.toFixed(2) : null,
+        priceInCents: calculatePriceWithDiscount(priceInCents, discount),
+        isNew: isNew(createdAt, 3),
+        ...rest,
+      }
+    })
 
     const productFormated = {
       ...product,
-      discountPerCent: product.discount,
       tags: tagsArray,
-      isNew: isNew(product.createdAt, 3),
-      priceInCents: priceInCents.toFixed(2),
-      oldPriceInCents,
       colors,
       sizes,
-      variants,
+      variants: variantsFormat,
     }
 
     return {

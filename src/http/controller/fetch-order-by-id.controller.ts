@@ -30,7 +30,12 @@ export class FetchOrderById {
                 categoryId: true,
               },
             },
-            productVariant: true,
+            productVariant: {
+              include: {
+                color: true,
+                size: true,
+              },
+            },
           },
         },
       },
@@ -39,8 +44,6 @@ export class FetchOrderById {
       },
     })
 
-    console.log('order')
-    console.log(order)
     if (!order) {
       throw new BadRequestException()
     }

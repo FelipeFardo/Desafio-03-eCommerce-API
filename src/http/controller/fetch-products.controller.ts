@@ -3,6 +3,7 @@ import { Controller, Get, HttpCode, Query, UsePipes } from '@nestjs/common'
 import { z } from 'zod'
 import { ZodValidationPipe } from '@/http/pipes/zod-validation-pipe'
 import { Public } from '@/auth/public'
+import { Prisma } from '@prisma/client'
 import { PrismaService } from '@/database/prisma.service'
 import { calculatePriceWithDiscount } from '../utils/calculate-price-with-discount'
 import { isNew } from '../utils/is-new'
@@ -31,6 +32,16 @@ const queryFetchProductsSchema = z.object({
 
 type QueryFetchProductsSchema = z.infer<typeof queryFetchProductsSchema>
 
+type ProductWithImagesAndCategory = Prisma.ProductVariantGetPayload<{
+  include: {
+    product: {
+      include: {
+        images: true
+      }
+    }
+  }
+}>
+
 @Controller('/products')
 @Public()
 export class FetchProducts {
@@ -42,67 +53,81 @@ export class FetchProducts {
   async handle(@Query() query: QueryFetchProductsSchema) {
     const { pageIndex, perPage, categories, shortBy } = query
 
-    const totalCount = await this.prisma.product.count({
-      ...(categories.length > 0
+    const categoryFilter =
+      categories.length > 0
         ? {
-            where: {
+            product: {
               category: {
                 slug: { in: categories },
               },
             },
           }
-        : {}),
+        : {}
+
+    const whereCondition = {
+      quantity: {
+        gt: 0,
+      },
+      ...categoryFilter,
+    }
+
+    const totalCount = await this.prisma.productVariant.count({
+      where: whereCondition,
     })
 
-    const products = await this.prisma.product.findMany({
+    const productsVariants = await this.prisma.productVariant.findMany({
       skip: (pageIndex - 1) * perPage,
       take: perPage,
       include: {
-        category: true,
-        images: {
-          take: 1,
+        color: true,
+        size: true,
+        product: {
+          include: {
+            colors: true,
+            sizes: true,
+            images: {
+              take: 1,
+            },
+          },
         },
       },
-      ...(shortBy ? { orderBy: { priceInCents: shortBy } } : {}),
-      ...(categories.length > 0
-        ? {
-            where: {
-              category: {
-                slug: { in: categories },
-              },
-            },
-          }
-        : {}),
+      orderBy: shortBy ? { priceInCents: shortBy } : undefined,
+      where: whereCondition,
     })
 
-    const productsFormated = products.map((product) => {
-      const { images, ...rest } = product
-
-      return {
-        ...rest,
-        image: images[0],
-        isNew: isNew(product.createdAt, 3),
-        priceInCents: product.discount
-          ? calculatePriceWithDiscount(
-              product.priceInCents,
-              product.discount,
-            ).toFixed(2)
-          : product.priceInCents.toFixed(2),
-        oldPriceInCents: product.discount
-          ? product.priceInCents.toFixed(2)
-          : null,
-      }
-    })
+    const productsVariantsFormated = productsVariants.map((productVariant) =>
+      formatProductVariant(productVariant),
+    )
 
     return {
-      products: productsFormated,
+      products: productsVariantsFormated,
       meta: {
         pageIndex,
         perPage,
-        categories,
-        shortBy: shortBy || 'default',
+        categories: categories.length ? categories : 'all',
+        shortBy: shortBy || null,
         totalCount,
       },
     }
+  }
+}
+
+function formatProductVariant(productVariant: ProductWithImagesAndCategory) {
+  const {
+    product: { images, ...productRest },
+    createdAt,
+    priceInCents,
+    discount,
+    ...rest
+  } = productVariant
+
+  return {
+    ...rest,
+    product: productRest,
+    image: images[0],
+    discount,
+    isNew: isNew(createdAt, 3),
+    priceInCents: calculatePriceWithDiscount(priceInCents, discount),
+    oldPriceInCents: discount ? priceInCents.toFixed(2) : null,
   }
 }
