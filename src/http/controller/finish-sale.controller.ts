@@ -77,82 +77,80 @@ export class FinishSaleController {
       zipCode,
     } = body
     let orderIdResponse = ''
-    try {
-      await this.prisma.$transaction(async (prisma) => {
-        let totalInCents = 0
-        const order = await prisma.order.create({
-          data: {
-            city,
-            zipCode,
-            addOnAddress,
-            companyName,
-            country,
-            email,
-            firstName,
-            lastName,
-            paymentMethod,
-            province,
-            streetAddress,
-            totalInCents,
-            additionalInfo,
-            customerId: userId,
-          },
-        })
 
-        orderIdResponse = order.id
-        await Promise.all(
-          items.map(async (item) => {
-            const productVariant = await prisma.productVariant.findUnique({
-              where: {
-                sku: item.sku,
-              },
-              include: {
-                product: true,
-              },
-            })
-
-            if (item.quantity > productVariant.quantity) {
-              throw new Error(
-                `Please note that there has been a change in the quantity available for Product ${productVariant.product.slug} and SKU: ${productVariant.sku}. The available quantity is ${productVariant.quantity}`,
-              )
-            }
-
-            const priceInCentsPerUnit = calculatePriceWithDiscount(
-              productVariant.priceInCents,
-              productVariant.discount,
-            )
-            const subTotal = item.quantity * priceInCentsPerUnit
-
-            totalInCents += subTotal
-            await prisma.orderItems.create({
-              data: {
-                priceInCentsPerUnit,
-                quantity: item.quantity,
-                subTotalInCents: subTotal,
-                orderId: order.id,
-                productId: productVariant.productId,
-                productVariantId: productVariant.id,
-              },
-            })
-            const newQuantity = productVariant.quantity - item.quantity
-            await prisma.productVariant.update({
-              data: {
-                quantity: newQuantity,
-              },
-              where: { sku: productVariant.sku },
-            })
-          }),
-        )
-        await prisma.order.update({
-          data: {
-            totalInCents,
-          },
-          where: { id: order.id },
-        })
+    await this.prisma.$transaction(async (prisma) => {
+      let totalInCents = 0
+      const order = await prisma.order.create({
+        data: {
+          city,
+          zipCode,
+          addOnAddress,
+          companyName,
+          country,
+          email,
+          firstName,
+          lastName,
+          paymentMethod,
+          province,
+          streetAddress,
+          totalInCents,
+          additionalInfo,
+          customerId: userId,
+        },
       })
-    } catch (error) {
-      throw new ConflictException()
-    }
+
+      orderIdResponse = order.id
+      await Promise.all(
+        items.map(async (item) => {
+          const productVariant = await prisma.productVariant.findUnique({
+            where: {
+              sku: item.sku,
+            },
+            include: {
+              product: true,
+            },
+          })
+
+          if (item.quantity > productVariant.quantity) {
+            throw new ConflictException(
+              `Please note that there has been a change in the quantity available for Product ${productVariant.product.slug} and SKU: ${productVariant.sku}. The available quantity is ${productVariant.quantity}`,
+            )
+          }
+
+          const priceInCentsPerUnit = calculatePriceWithDiscount(
+            productVariant.priceInCents,
+            productVariant.discount,
+          )
+          const subTotal = item.quantity * priceInCentsPerUnit
+
+          totalInCents += subTotal
+          await prisma.orderItems.create({
+            data: {
+              priceInCentsPerUnit,
+              quantity: item.quantity,
+              subTotalInCents: subTotal,
+              orderId: order.id,
+              productId: productVariant.productId,
+              productVariantId: productVariant.id,
+            },
+          })
+          const newQuantity = productVariant.quantity - item.quantity
+          await prisma.productVariant.update({
+            data: {
+              quantity: newQuantity,
+            },
+            where: { sku: productVariant.sku },
+          })
+        }),
+      )
+      await prisma.order.update({
+        data: {
+          totalInCents,
+        },
+        where: { id: order.id },
+      })
+    })
+
     return {
       orderId: orderIdResponse,
     }
