@@ -110,7 +110,7 @@ model ProductColor {
   id        String  @id @default(uuid())
   productId String? @map("product_id")
   name      String
-  color     String
+  hexCode   String
 
   product  Product?         @relation(fields: [productId], references: [id])
   variants ProductVariant[]

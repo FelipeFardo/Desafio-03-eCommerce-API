@@ -118,7 +118,7 @@ async function seed() {
         categoryId: createdCategories[categoryRandom].id,
         description: faker.lorem.words({ min: 3, max: 6 }),
         name: faker.commerce.product(),
-        slug: createSlug(faker.commerce.productName() + i),
+        slug: createSlug(faker.commerce.productName() + '-' + i),
         images: {
           createMany: {
             data: [
@@ -165,50 +165,86 @@ async function seed() {
       ],
     })
 
-    const colors = ['#FF0000', '#0000FF', '#000000', '#FFFFFF']
-    const colorName = ['red', 'blue', 'black', 'white']
+    const colors = [
+      { hex: '#FF0000', name: 'red' },
+      { hex: '#0000FF', name: 'blue' },
+      { hex: '#000000', name: 'black' },
+      { hex: '#FFFFFF', name: 'white' },
+      { hex: '#FFFF00', name: 'yellow' },
+    ]
 
-    const color1Random = numberRandom(4)
+    const color1Random = numberRandom(5)
     const color1 = await prisma.productColor.create({
       data: {
-        color: colors[color1Random],
-        name: colorName[color1Random],
+        hexCode: colors[color1Random].hex,
+        name: colors[color1Random].name,
         productId: product.id,
       },
     })
     let color2Random: number
     do {
-      color2Random = Math.floor(Math.random() * 4)
+      color2Random = Math.floor(Math.random() * 5)
     } while (color1Random === color2Random)
 
     const color2 = await prisma.productColor.create({
       data: {
-        color: colors[color2Random],
-        name: colorName[color2Random],
+        hexCode: colors[color2Random].hex,
+        name: colors[color2Random].name,
         productId: product.id,
       },
     })
-    const sizes = ['S', 'M', 'L']
-    const sizeName = ['small', 'medium', 'large']
 
-    const size1Random = numberRandom(3)
+    let color3Random: number
+    do {
+      color3Random = Math.floor(Math.random() * 5)
+    } while (color1Random === color3Random || color2Random === color3Random)
+
+    const color3 = await prisma.productColor.create({
+      data: {
+        hexCode: colors[color3Random].hex,
+        name: colors[color3Random].name,
+        productId: product.id,
+      },
+    })
+
+    const sizes = [
+      { size: 'S', name: 'small' },
+      { size: 'M', name: 'medium' },
+      { size: 'L', name: 'large' },
+      { size: 'XL', name: 'extra large' },
+    ]
+
+    const size1Random = numberRandom(4)
     const size1 = await prisma.productSize.create({
       data: {
-        size: sizes[size1Random],
-        name: sizeName[size1Random],
+        size: sizes[size1Random].size,
+        name: sizes[size1Random].name,
         productId: product.id,
       },
     })
 
     let size2Random: number
     do {
-      size2Random = Math.floor(Math.random() * 3)
+      size2Random = Math.floor(Math.random() * 4)
     } while (size2Random === size1Random)
 
     const size2 = await prisma.productSize.create({
       data: {
-        size: sizes[size2Random],
-        name: sizeName[size2Random],
+        size: sizes[size2Random].size,
+        name: sizes[size2Random].name,
+        productId: product.id,
+      },
+    })
+
+    let size3Random: number
+    do {
+      size3Random = Math.floor(Math.random() * 4)
+    } while (size2Random === size3Random || size1Random === size3Random)
+
+    const size3 = await prisma.productSize.create({
+      data: {
+        size: sizes[size3Random].size,
+        name: sizes[size3Random].name,
         productId: product.id,
       },
     })
@@ -238,9 +274,9 @@ async function seed() {
         {
           quantity: faker.number.int({ min: 1, max: 10 }),
           createdAt: randomCreateAt(7),
-          colorId: color2.id,
+          colorId: color1.id,
           sku: sku + 3,
-          sizeId: size1.id,
+          sizeId: size3.id,
           productId: product.id,
           discount: randomDiscout() ? Math.floor(Math.random() * 40) + 1 : null,
           priceInCents: Number(faker.commerce.price({ min: 100, max: 1000 })),
@@ -250,7 +286,57 @@ async function seed() {
           createdAt: randomCreateAt(7),
           colorId: color2.id,
           sku: sku + 4,
+          sizeId: size1.id,
+          productId: product.id,
+          discount: randomDiscout() ? Math.floor(Math.random() * 40) + 1 : null,
+          priceInCents: Number(faker.commerce.price({ min: 100, max: 1000 })),
+        },
+        {
+          quantity: faker.number.int({ min: 1, max: 10 }),
+          createdAt: randomCreateAt(7),
+          colorId: color2.id,
+          sku: sku + 5,
           sizeId: size2.id,
+          productId: product.id,
+          discount: randomDiscout() ? Math.floor(Math.random() * 40) + 1 : null,
+          priceInCents: Number(faker.commerce.price({ min: 100, max: 1000 })),
+        },
+        {
+          quantity: faker.number.int({ min: 1, max: 10 }),
+          createdAt: randomCreateAt(7),
+          colorId: color2.id,
+          sku: sku + 6,
+          sizeId: size3.id,
+          productId: product.id,
+          discount: randomDiscout() ? Math.floor(Math.random() * 40) + 1 : null,
+          priceInCents: Number(faker.commerce.price({ min: 100, max: 1000 })),
+        },
+        {
+          quantity: faker.number.int({ min: 1, max: 10 }),
+          createdAt: randomCreateAt(7),
+          colorId: color3.id,
+          sku: sku + 7,
+          sizeId: size1.id,
+          productId: product.id,
+          discount: randomDiscout() ? Math.floor(Math.random() * 40) + 1 : null,
+          priceInCents: Number(faker.commerce.price({ min: 100, max: 1000 })),
+        },
+        {
+          quantity: faker.number.int({ min: 1, max: 10 }),
+          createdAt: randomCreateAt(7),
+          colorId: color3.id,
+          sku: sku + 8,
+          sizeId: size2.id,
+          productId: product.id,
+          discount: randomDiscout() ? Math.floor(Math.random() * 40) + 1 : null,
+          priceInCents: Number(faker.commerce.price({ min: 100, max: 1000 })),
+        },
+        {
+          quantity: faker.number.int({ min: 1, max: 10 }),
+          createdAt: randomCreateAt(7),
+          colorId: color3.id,
+          sku: sku + 9,
+          sizeId: size3.id,
           productId: product.id,
           discount: randomDiscout() ? Math.floor(Math.random() * 40) + 1 : null,
           priceInCents: Number(faker.commerce.price({ min: 100, max: 1000 })),
